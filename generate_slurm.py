@@ -10,7 +10,7 @@ SUBMIT = """#!/bin/bash
 ### Logging
 #SBATCH --output={log_dir}/{name}_%j.out   # Name of stdout output file (%j expands to jobId)
 #SBATCH --error={log_dir}/{name}_%j.err    # Name of stderr output file (%j expands to jobId)
-#SBATCH --mail-user=bzhou@cs.utexas.edu      # Email of notification
+#SBATCH --mail-user=stephane@cs.utexas.edu      # Email of notification
 #SBATCH --mail-type=END,FAIL,REQUEUE
 
 ### Node info
@@ -50,16 +50,12 @@ log_dir.mkdir(exist_ok=True)
 script_dir = parent / 'slurm_scripts'
 script_dir.mkdir(exist_ok=True)
 
-for i, job_dict in enumerate(product_dict(**package.PARAMS)):
-    job_name = '_'.join('%s-%s' % (k, v) for k, v in sorted(job_dict.items()))
-    job = package.get_job(**job_dict)
+job_name = 'spinning_carla_simulator'
+job = package.get_job()
+submit = script_dir / ('submit_%s.submit' % job_name)
+train = script_dir / ('%s.sh' % job_name)
 
-    submit = script_dir / ('submit_%s.submit' % job_name)
-    train = script_dir / ('train_%s.sh' % job_name)
-
-    print(job_name)
-
-    submit.write_text(SUBMIT.format(log_dir=log_dir, name=job_name))
-    train.write_text(job)
-
-    os.chmod(script_dir / ('train_%s.sh' % job_name), 509)
+submit.write_text(SUBMIT.format(log_dir=log_dir, name=job_name))
+#job, _ = job
+train.write_text(job)
+os.chmod(script_dir / ('%s.sh' % job_name), 509)
